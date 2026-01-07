@@ -47,6 +47,10 @@ namespace :docs do
 
     File.write("docs/index.html", html)
     puts "Version index page created at docs/index.html"
+
+    # Create CNAME file for GitHub Pages custom domain
+    File.write("docs/CNAME", "docs.funes.org\n")
+    puts "CNAME file created for docs.funes.org"
   end
 
   desc "List all documented versions"
