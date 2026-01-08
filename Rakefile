@@ -10,8 +10,11 @@ require "bundler/gem_tasks"
 namespace :docs do
   desc "Generate YARD documentation for current version"
   task :generate do
-    require_relative "lib/funes/version"
-    version = Funes::VERSION
+    # Allow version override via environment variable (for CI)
+    version = ENV["VERSION"] || begin
+      require_relative "lib/funes/version"
+      Funes::VERSION
+    end
     output_dir = "docs/v#{version}"
 
     puts "Generating documentation for version #{version}..."

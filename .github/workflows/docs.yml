@@ -40,20 +40,17 @@ jobs:
 
           echo "Found tags: $tags"
 
-          # Generate docs for each version
+          # Generate docs for each version using current code
+          # This ensures bug fixes in documentation generation apply to all versions
           for tag in $tags; do
             echo "Generating docs for $tag..."
-            git checkout $tag
 
-            # Install dependencies for this version
-            bundle install --quiet
+            # Extract version number (strip 'v' prefix)
+            version=${tag#v}
 
-            # Generate docs
-            bundle exec rake docs:generate || true
+            # Generate docs using current code but with version from tag
+            VERSION=$version bundle exec rake docs:generate || true
           done
-
-          # Checkout back to the triggered tag
-          git checkout ${GITHUB_REF#refs/tags/}
 
           # Rebuild index to include all versions
           bundle exec rake docs:build_index
