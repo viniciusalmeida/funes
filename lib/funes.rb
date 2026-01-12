@@ -53,7 +53,7 @@ require "funes/engine"
 # 5. Append events:
 #    ```ruby
 #    stream = OrderEventStream.for("order-123")
-#    event = stream.append!(Order::Placed.new(total: 99.99, customer_id: "cust-1"))
+#    event = stream.append(Order::Placed.new(total: 99.99, customer_id: "cust-1"))
 #    ```
 #
 # ## Three-Tier Consistency Model

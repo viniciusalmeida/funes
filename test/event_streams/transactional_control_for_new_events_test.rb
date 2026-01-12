@@ -44,7 +44,7 @@ class TransactionalControlForNewEventsTest < ActiveSupport::TestCase
                                 version: 1)
 
       assert_no_difference -> { UnitTests::Materialization.count }, "No event should be created" do
-        event_stream_instance.append!(event)
+        event_stream_instance.append(event)
       end
       assert event.errors[:base].present?, "The racing condition error should be added to the event's errors"
       refute UnitTests::Materialization.exists?(idx: idx), "No materialization was created for this idx"
@@ -61,7 +61,7 @@ class TransactionalControlForNewEventsTest < ActiveSupport::TestCase
       event = Events::ValidEvent.new(value: 42)
 
       assert_no_difference -> { Funes::EventEntry.count }, "No event should be created" do
-        StreamWithSingleFailingProjection.for(idx).append!(event)
+        StreamWithSingleFailingProjection.for(idx).append(event)
       end
 
       assert event.errors[:base].present?, "The error should be added to the event's errors"
@@ -81,7 +81,7 @@ class TransactionalControlForNewEventsTest < ActiveSupport::TestCase
       event = Events::ValidEvent.new(value: 42)
 
       assert_no_difference -> { Funes::EventEntry.count }, "No event should be created" do
-        StreamWithMultipleProjections.for(idx).append!(event)
+        StreamWithMultipleProjections.for(idx).append(event)
       end
 
       assert event.errors[:base].present?, "The error should be added to the event's errors"

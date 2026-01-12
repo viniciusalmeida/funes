@@ -39,7 +39,7 @@ class TransactionalProjectionsMaterializationTest < ActiveSupport::TestCase
       travel_to(event_creation_time) do
         Funes::PersistProjectionJob.stub(:perform_now, mock) do
           event = DummyEvent.new(value: 42)
-          event_stream_instance.append!(event)
+          event_stream_instance.append(event)
         end
       end
 
@@ -63,7 +63,7 @@ class TransactionalProjectionsMaterializationTest < ActiveSupport::TestCase
       travel_to(event_creation_time) do
         Funes::PersistProjectionJob.stub(:perform_now, mock) do
           event = DummyEvent.new(value: 42)
-          event_stream_instance.append!(event)
+          event_stream_instance.append(event)
         end
       end
 

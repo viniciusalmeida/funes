@@ -31,10 +31,10 @@ module Funes
   #
   # @example Using the event
   #   event = Order::Placed.new(total: 99.99, customer_id: "cust-123")
-  #   stream.append!(event)
+  #   stream.append(event)
   #
   # @example Handling validation errors
-  #   event = stream.append!(Order::Placed.new(total: -10))
+  #   event = stream.append(Order::Placed.new(total: -10))
   #   unless event.valid?
   #     puts event.own_errors.full_messages      # => Event's own validation errors
   #     puts event.state_errors.full_messages    # => Consistency projection errors
@@ -96,7 +96,7 @@ module Funes
     # @return [ActiveModel::Errors] Errors from consistency projection validation.
     #
     # @example
-    #   event = stream.append!(Inventory::ItemShipped.new(quantity: 9999))
+    #   event = stream.append(Inventory::ItemShipped.new(quantity: 9999))
     #   event.state_errors.full_messages  # => ["Quantity on hand must be >= 0"]
     def state_errors
       adjacent_state_errors

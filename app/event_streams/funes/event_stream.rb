@@ -32,7 +32,7 @@ module Funes
   #
   # @example Append events to a stream
   #   stream = OrderEventStream.for("order-123")
-  #   event = stream.append!(Order::Placed.new(total: 99.99))
+  #   event = stream.append(Order::Placed.new(total: 99.99))
   #
   #   if event.valid?
   #     puts "Event persisted with version #{event.version}"
@@ -147,23 +147,23 @@ module Funes
     # @return [Funes::Event] The event object (check `valid?` to see if it was persisted).
     #
     # @example Successful append
-    #   event = stream.append!(Order::Placed.new(total: 99.99))
+    #   event = stream.append(Order::Placed.new(total: 99.99))
     #   if event.valid?
     #     puts "Event persisted with version #{event.version}"
     #   end
     #
     # @example Handling validation failure
-    #   event = stream.append!(InvalidEvent.new)
+    #   event = stream.append(InvalidEvent.new)
     #   unless event.valid?
     #     puts "Event rejected: #{event.errors.full_messages}"
     #   end
     #
     # @example Handling concurrency conflict
-    #   event = stream.append!(SomeEvent.new)
+    #   event = stream.append(SomeEvent.new)
     #   if event.errors[:base].present?
     #     # Race condition detected, retry logic here
     #   end
-    def append!(new_event)
+    def append(new_event)
       return new_event unless new_event.valid?
       return new_event if consistency_projection.present? &&
                           compute_projection_with_new_event(consistency_projection, new_event).invalid?
@@ -204,6 +204,10 @@ module Funes
     #   end
     def events
       (previous_events + @instance_new_events).map(&:to_klass_instance)
+    end
+
+    def to_param
+      idx
     end
 
     private
