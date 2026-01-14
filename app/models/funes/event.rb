@@ -52,6 +52,10 @@ module Funes
     #   @return [ActiveModel::Errors, nil] The event's own validation errors (internal use).
     attr_accessor :event_errors
 
+    # @!attribute [rw] _event_entry
+    #   @return [Funes::EventEntry, nil] The persisted EventEntry record (internal use).
+    attr_accessor :_event_entry
+
     # @!visibility private
     def initialize(*args, **kwargs)
       super(*args, **kwargs)
@@ -60,7 +64,24 @@ module Funes
 
     # @!visibility private
     def persist!(idx, version)
-      Funes::EventEntry.create!(klass: self.class.name, idx:, version:, props: attributes)
+      self._event_entry = Funes::EventEntry.create!(klass: self.class.name, idx:, version:, props: attributes)
+    end
+
+    # Check if the event has been persisted to the database.
+    #
+    # An event is considered persisted if it was either saved via `EventStream#append` or
+    # reconstructed from an {EventEntry} via `to_klass_instance`.
+    #
+    # @return [Boolean] `true` if the event has been persisted, `false` otherwise.
+    #
+    # @example
+    #   event = Order::Placed.new(total: 99.99)
+    #   event.persisted?  # => false
+    #
+    #   stream.append(event)
+    #   event.persisted?  # => true (if no validation errors)
+    def persisted?
+      _event_entry.present?
     end
 
     # Custom string representation of the event.

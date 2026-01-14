@@ -173,6 +173,7 @@ module Funes
           @instance_new_events << new_event.persist!(@idx, incremented_version)
           run_transactional_projections
         rescue ActiveRecord::RecordNotUnique, Funes::TransactionalProjectionFailed
+          new_event._event_entry = nil
           new_event.errors.add(:base, I18n.t("funes.events.racing_condition_on_insert"))
           raise ActiveRecord::Rollback
         end
