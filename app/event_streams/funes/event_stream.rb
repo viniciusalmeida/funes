@@ -207,6 +207,20 @@ module Funes
       (previous_events + @instance_new_events).map(&:to_klass_instance)
     end
 
+    # Returns the parameter representation of the event stream for use in URLs.
+    #
+    # This method follows the ActiveRecord convention for URL generation, allowing EventStream
+    # instances to be used directly with Rails URL helpers like `url_for` or named route helpers.
+    #
+    # @return [String] The entity identifier (`idx`) used as the URL parameter.
+    #
+    # @example Using with Rails URL helpers
+    #   stream = OrderEventStream.for("order-123")
+    #   url_for(stream) # => uses "order-123" as the :id parameter
+    #
+    # @example In path helpers
+    #   stream = OrderEventStream.for("order-123")
+    #   order_path(stream) # => "/orders/order-123"
     def to_param
       idx
     end
