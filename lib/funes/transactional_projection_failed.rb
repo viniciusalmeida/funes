@@ -7,7 +7,7 @@ module Funes
   #
   # @example Handling projection failures
   #   stream = OrderEventStream.for("order-123")
-  #   event = stream.append!(Order::Placed.new(total: 99.99))
+  #   event = stream.append(Order::Placed.new(total: 99.99))
   #
   #   if event.errors[:base].present?
   #     # The projection failed and transaction was rolled back

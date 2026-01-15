@@ -56,18 +56,18 @@ class EventStreamTest < ActiveSupport::TestCase
   events = [ Events4CurrentTest::Start.new(value: 0),
              Events4CurrentTest::Add.new(value: 1) ]
 
-  describe "append! method" do
+  describe "append method" do
     describe "the happy path" do
       describe "with a fresh event stream" do
         it "persists the event to the event log" do
           assert_difference -> { Funes::EventEntry.count }, 1 do
-            event_stream.for("hadouken").append! events.first
+            event_stream.for("hadouken").append events.first
           end
         end
 
         it "adds the transactional projection to the database" do
           assert_difference -> { UnitTests::Materialization.count }, 1 do
-            event_stream.for("hadouken").append! events.first
+            event_stream.for("hadouken").append events.first
           end
 
           assert_equal UnitTests::Materialization.all.first.value, 0
@@ -76,18 +76,18 @@ class EventStreamTest < ActiveSupport::TestCase
 
       describe "with a previously created event stream" do
         before do
-          event_stream.for("hadouken").append! events.first
+          event_stream.for("hadouken").append events.first
         end
 
         it "persists the event to the event log" do
           assert_difference -> { Funes::EventEntry.count }, 1 do
-            event_stream.for("hadouken").append! events.second
+            event_stream.for("hadouken").append events.second
           end
         end
 
         it "updates the existent stream's transactional projection record" do
           assert_no_difference -> { UnitTests::Materialization.count } do
-            event_stream.for("hadouken").append! events.second
+            event_stream.for("hadouken").append events.second
           end
 
           assert_equal UnitTests::Materialization.all.first.value, 1
@@ -113,7 +113,7 @@ class EventStreamTest < ActiveSupport::TestCase
           invalid_event = Events4CurrentTest::Start.new(value: -1)
 
           assert_no_difference -> { Funes::EventEntry.count } do
-            event_stream.for("hadouken").append!(invalid_event)
+            event_stream.for("hadouken").append(invalid_event)
           end
 
           assert_equal invalid_event.errors.size, 1
@@ -127,14 +127,14 @@ class EventStreamTest < ActiveSupport::TestCase
 
       describe "on a previously created stream" do
         before do
-          event_stream.for("hadouken").append! events.first
+          event_stream.for("hadouken").append events.first
         end
 
         it "does not persist the event in the event log" do
           invalid_event = Events4CurrentTest::Add.new(value: -1)
 
           assert_no_difference -> { Funes::EventEntry.count } do
-            event_stream.for("hadouken").append!(invalid_event)
+            event_stream.for("hadouken").append(invalid_event)
           end
 
           assert_equal invalid_event.errors.size, 1

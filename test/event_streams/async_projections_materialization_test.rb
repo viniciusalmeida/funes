@@ -39,7 +39,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithSingleAsyncProjection.for("my-identifier", as_of_time).append!(event)
+            EventStreamWithSingleAsyncProjection.for("my-identifier", as_of_time).append(event)
           end
         end
 
@@ -62,7 +62,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithSingleAsyncProjectionAndOptions.for("my-identifier", as_of_time).append!(event)
+            EventStreamWithSingleAsyncProjectionAndOptions.for("my-identifier", as_of_time).append(event)
           end
         end
 
@@ -78,7 +78,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithSingleAsyncProjectionAndOptions.for("my-identifier", as_of_time).append!(event)
+            EventStreamWithSingleAsyncProjectionAndOptions.for("my-identifier", as_of_time).append(event)
           end
         end
 
@@ -104,7 +104,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
       travel_to(as_of_time) do
         Funes::PersistProjectionJob.stub(:set, set_mock) do
           event = DummyEvent.new(value: 42)
-          StreamWithMultipleAsyncProjections.for("my-identifier", as_of_time).append!(event)
+          StreamWithMultipleAsyncProjections.for("my-identifier", as_of_time).append(event)
         end
       end
 
@@ -123,7 +123,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
       travel_to(as_of_time) do
         Funes::PersistProjectionJob.stub(:set, set_stub) do
           event = DummyEvent.new(value: 42)
-          StreamWithMultipleAsyncProjections.for("my-identifier", as_of_time).append!(event)
+          StreamWithMultipleAsyncProjections.for("my-identifier", as_of_time).append(event)
         end
       end
 
@@ -145,7 +145,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithDefaultAsOf.for("test-id", as_of_time).append!(event)
+            EventStreamWithDefaultAsOf.for("test-id", as_of_time).append(event)
           end
         end
 
@@ -167,7 +167,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithJobTime.for("test-id", as_of_time).append!(event)
+            EventStreamWithJobTime.for("test-id", as_of_time).append(event)
           end
         end
 
@@ -190,7 +190,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithProcAsOf.for("test-id", as_of_time).append!(event)
+            EventStreamWithProcAsOf.for("test-id", as_of_time).append(event)
           end
         end
 
@@ -210,7 +210,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         error = assert_raises(ArgumentError) do
           travel_to(as_of_time) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithInvalidProc.for("test-id", as_of_time).append!(event)
+            EventStreamWithInvalidProc.for("test-id", as_of_time).append(event)
           end
         end
 
@@ -231,7 +231,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         error = assert_raises(ArgumentError) do
           travel_to(as_of_time) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithInvalidStrategy.for("test-id", as_of_time).append!(event)
+            EventStreamWithInvalidStrategy.for("test-id", as_of_time).append(event)
           end
         end
 
@@ -253,7 +253,7 @@ class AsyncProjectionsMaterializationTest < ActiveSupport::TestCase
         travel_to(as_of_time) do
           Funes::PersistProjectionJob.stub(:set, set_mock) do
             event = DummyEvent.new(value: 42)
-            EventStreamWithAsOfAndOptions.for("test-id", as_of_time).append!(event)
+            EventStreamWithAsOfAndOptions.for("test-id", as_of_time).append(event)
           end
         end
 

@@ -51,13 +51,13 @@ class EventValidationTest < ActiveSupport::TestCase
 
       it "does not persist the new event in the event log" do
         assert_no_difference -> { Funes::EventEntry.count } do
-          SubjectEventStream.for("hadouken").append!(invalid_event)
+          SubjectEventStream.for("hadouken").append(invalid_event)
         end
       end
 
       describe "error management" do
         before do
-          SubjectEventStream.for("hadouken").append!(invalid_event)
+          SubjectEventStream.for("hadouken").append(invalid_event)
         end
 
         it { assert_equal(invalid_event.errors.size, 1) }
@@ -82,20 +82,20 @@ class EventValidationTest < ActiveSupport::TestCase
 
     describe "on a previously created stream" do
       before do
-        SubjectEventStream.for("hadouken").append!(Events4CurrentTest::Start.new(value: 0))
+        SubjectEventStream.for("hadouken").append(Events4CurrentTest::Start.new(value: 0))
       end
 
       invalid_event = Events4CurrentTest::Add.new(value: -1)
 
       it "does not persist the new event in the event log" do
         assert_no_difference -> { Funes::EventEntry.count } do
-          SubjectEventStream.for("hadouken").append!(invalid_event)
+          SubjectEventStream.for("hadouken").append(invalid_event)
         end
       end
 
       describe "error management" do
         before do
-          SubjectEventStream.for("hadouken").append!(invalid_event)
+          SubjectEventStream.for("hadouken").append(invalid_event)
         end
 
         it { assert_equal(invalid_event.errors.size, 1) }
@@ -124,13 +124,13 @@ class EventValidationTest < ActiveSupport::TestCase
 
     it "persists the new event in the event log" do
       assert_difference -> { Funes::EventEntry.count }, 1 do
-        SubjectEventStream.for("hadouken").append!(valid_event)
+        SubjectEventStream.for("hadouken").append(valid_event)
       end
     end
 
     describe "error management" do
       before do
-        SubjectEventStream.for("hadouken").append!(valid_event)
+        SubjectEventStream.for("hadouken").append(valid_event)
       end
 
       it { assert_empty valid_event.own_errors }

@@ -31,10 +31,10 @@ module Funes
   #
   # @example Using the event
   #   event = Order::Placed.new(total: 99.99, customer_id: "cust-123")
-  #   stream.append!(event)
+  #   stream.append(event)
   #
   # @example Handling validation errors
-  #   event = stream.append!(Order::Placed.new(total: -10))
+  #   event = stream.append(Order::Placed.new(total: -10))
   #   unless event.valid?
   #     puts event.own_errors.full_messages      # => Event's own validation errors
   #     puts event.state_errors.full_messages    # => Consistency projection errors
@@ -52,6 +52,10 @@ module Funes
     #   @return [ActiveModel::Errors, nil] The event's own validation errors (internal use).
     attr_accessor :event_errors
 
+    # @!attribute [rw] _event_entry
+    #   @return [Funes::EventEntry, nil] The persisted EventEntry record (internal use).
+    attr_accessor :_event_entry
+
     # @!visibility private
     def initialize(*args, **kwargs)
       super(*args, **kwargs)
@@ -60,7 +64,24 @@ module Funes
 
     # @!visibility private
     def persist!(idx, version)
-      Funes::EventEntry.create!(klass: self.class.name, idx:, version:, props: attributes)
+      self._event_entry = Funes::EventEntry.create!(klass: self.class.name, idx:, version:, props: attributes)
+    end
+
+    # Check if the event has been persisted to the database.
+    #
+    # An event is considered persisted if it was either saved via `EventStream#append` or
+    # reconstructed from an {EventEntry} via `to_klass_instance`.
+    #
+    # @return [Boolean] `true` if the event has been persisted, `false` otherwise.
+    #
+    # @example
+    #   event = Order::Placed.new(total: 99.99)
+    #   event.persisted?  # => false
+    #
+    #   stream.append(event)
+    #   event.persisted?  # => true (if no validation errors)
+    def persisted?
+      _event_entry.present?
     end
 
     # Custom string representation of the event.
@@ -96,7 +117,7 @@ module Funes
     # @return [ActiveModel::Errors] Errors from consistency projection validation.
     #
     # @example
-    #   event = stream.append!(Inventory::ItemShipped.new(quantity: 9999))
+    #   event = stream.append(Inventory::ItemShipped.new(quantity: 9999))
     #   event.state_errors.full_messages  # => ["Quantity on hand must be >= 0"]
     def state_errors
       adjacent_state_errors
