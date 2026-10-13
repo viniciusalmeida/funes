@@ -93,6 +93,19 @@ module Funes
   #   stream = SalaryEventStream.for("sally-123")
   #   stream.projected_with(SalaryProjection, as_of: Time.new(2025, 3, 1), at: Time.new(2025, 2, 20))
   class EventStream
+    # Raised inside the append transaction when the database rejects a row for a unique index, so
+    # the block rolls back and the caller decides, outside the transaction, whether the collision was
+    # a repeated idempotency key or a version race.
+    class UniquenessViolation < StandardError
+      attr_reader :on_insert
+
+      def initialize(on_insert:)
+        super("unique index violated while appending an event")
+        @on_insert = on_insert
+      end
+    end
+    private_constant :UniquenessViolation
+
     class << self
       # Register a consistency projection that validates business rules before persisting events.
       #
@@ -546,44 +559,51 @@ module Funes
           end
         end
 
-        uniqueness_violated = false
-        entry_inserted = false
+        begin
+          persist_with_transactional_projections(new_event, occurred_at, idempotency_key)
+        rescue UniquenessViolation => violation
+          return resolve_uniqueness_violation(new_event, idempotency_key, violation, raise_on_failure:)
+        end
 
+        schedule_async_projections
+
+        new_event
+      end
+
+      def persist_with_transactional_projections(new_event, occurred_at, idempotency_key)
         ActiveRecord::Base.transaction do
           begin
             @instance_new_events << new_event.persist!(@idx, incremented_version, at: occurred_at,
                                                        idempotency_key: idempotency_key)
-            entry_inserted = true
             ActiveRecord::Base.connection.current_transaction.after_rollback do
               new_event._event_entry = nil
             end
             run_transactional_projections
           rescue ActiveRecord::RecordNotUnique
+            # persist! sets the entry only when its INSERT succeeded; a violation with the entry in
+            # place came from a transactional projection.
+            on_insert = !new_event.persisted?
             new_event._event_entry = nil
-            uniqueness_violated = true
-            raise ActiveRecord::Rollback
+            raise UniquenessViolation.new(on_insert: on_insert)
           rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordInvalid => e
             new_event._event_entry = nil
             raise e
           end
         end
+      end
 
-        if uniqueness_violated
-          # The violation can come from (idx, version) or from idempotency_key, and the
-          # exception does not tell which. A concurrent append with the same key answers it. The
-          # lookup runs here, after the transaction block, because on PostgreSQL the failed insert
-          # aborts the transaction and any query inside it would error. It is skipped when the entry
-          # was inserted: then the violation came from a transactional projection.
-          if idempotency_key && !entry_inserted &&
-             (stored_entry = entry_with_idempotency_key_after_violation(idempotency_key))
-            return resolve_repeated_idempotency_key(new_event, stored_entry, raise_on_failure:)
-          end
-
-          new_event.errors.add(:base, I18n.t("funes.events.racing_condition_on_insert"))
-          raise ActiveRecord::RecordInvalid.new(new_event) if raise_on_failure
+      # The violation can come from (idx, version) or from idempotency_key, and the database
+      # exception does not tell which. A stored entry with the same key answers it. The lookup runs
+      # here, outside the transaction block, because on PostgreSQL the failed insert aborts the
+      # transaction and any query inside it would error.
+      def resolve_uniqueness_violation(new_event, idempotency_key, violation, raise_on_failure:)
+        if idempotency_key && violation.on_insert &&
+           (stored_entry = entry_with_idempotency_key_after_violation(idempotency_key))
+          return resolve_repeated_idempotency_key(new_event, stored_entry, raise_on_failure:)
         end
 
-        schedule_async_projections unless new_event.errors.any?
+        new_event.errors.add(:base, I18n.t("funes.events.racing_condition_on_insert"))
+        raise ActiveRecord::RecordInvalid.new(new_event) if raise_on_failure
 
         new_event
       end
